@@ -1,0 +1,20 @@
+{
+  "name": "scalable-node-api",
+  "version": "0.1.0",
+  "description": "Production-grade CRUD REST API built with Node.js, TypeScript, Express 5, PostgreSQL and Prisma.",
+  "license": "UNLICENSED",
+  "private": true,
+  "author": "",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {},
+  "keywords": [
+    "node",
+    "typescript",
+    "express",
+    "postgresql",
+    "prisma",
+    "rest-api"
+  ]
+}
