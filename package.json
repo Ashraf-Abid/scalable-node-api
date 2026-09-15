@@ -8,7 +8,10 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "scripts": {},
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit"
+  },
   "keywords": [
     "node",
     "typescript",
@@ -16,5 +19,9 @@
     "postgresql",
     "prisma",
     "rest-api"
-  ]
+  ],
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "typescript": "^5.9.3"
+  }
 }
