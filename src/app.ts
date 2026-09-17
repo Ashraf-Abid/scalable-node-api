@@ -13,4 +13,11 @@ const app: Express = express();
 // Parse JSON request bodies so route handlers can read `req.body`.
 app.use(express.json());
 
+// Liveness check: confirms the process is up and able to handle HTTP
+// requests. Deliberately has no dependencies (no DB, no auth) so it stays
+// reliable for load balancers / container orchestrators to poll.
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 export default app;
