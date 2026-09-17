@@ -1,0 +1,13 @@
+generator client {
+  provider   = "prisma-client-js"
+  // Prisma's default engine (Node-API/"library") requires 64-bit Node.
+  // This machine's Node install is 32-bit (ia32), so the engine type is
+  // pinned to the binary engine, which supports 32-bit. Revisit once the
+  // Node install is upgraded to a 64-bit build.
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
