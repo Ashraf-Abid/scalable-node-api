@@ -1,9 +1,6 @@
 import app from './app';
+import { env } from './config/env';
 
-// Hardcoded default for now — Step 07 introduces validated environment
-// configuration (Zod) and this will be replaced by a proper config module.
-const PORT = process.env.PORT ?? 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+app.listen(env.PORT, () => {
+  console.log(`Server listening on port ${env.PORT} [${env.NODE_ENV}]`);
 });
