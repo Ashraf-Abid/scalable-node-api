@@ -11,3 +11,18 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  // DB-generated UUID (native Postgres type) instead of an incrementing
+  // integer — avoids leaking record counts via sequential, guessable IDs.
+  // gen_random_uuid() is built into Postgres 13+, no extension required.
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String   @db.VarChar(255)
+  email     String   @unique @db.VarChar(255)
+  // Bcrypt hash — never the plaintext password.
+  password  String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("users")
+}
