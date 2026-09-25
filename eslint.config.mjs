@@ -14,7 +14,13 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   {
     rules: {
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        // ignoreRestSiblings allows `const { password, ...rest } = user`
+        // even though `password` itself is never used — the point of that
+        // pattern is specifically to omit a field, not to use it.
+        { argsIgnorePattern: '^_', ignoreRestSiblings: true },
+      ],
     },
   },
   // Must stay last: turns off any ESLint stylistic rules that would
