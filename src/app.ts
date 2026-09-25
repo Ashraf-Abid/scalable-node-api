@@ -1,6 +1,7 @@
 import express, { type Express } from 'express';
 import { errorMiddleware } from './middlewares/error.middleware';
 import { notFoundMiddleware } from './middlewares/not-found.middleware';
+import userRoutes from './routes/user.routes';
 import { sendSuccess } from './utils/api-response';
 
 /**
@@ -22,6 +23,8 @@ app.use(express.json());
 app.get('/health', (_req, res) => {
   sendSuccess(res, { status: 'ok' });
 });
+
+app.use('/api/v1/users', userRoutes);
 
 // Must come after every route: turns any unmatched path into a
 // consistent NotFoundError instead of Express's default HTML 404 page.
