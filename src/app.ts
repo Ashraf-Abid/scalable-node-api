@@ -1,4 +1,6 @@
 import express, { type Express } from 'express';
+import { errorMiddleware } from './middlewares/error.middleware';
+import { notFoundMiddleware } from './middlewares/not-found.middleware';
 
 /**
  * Builds and configures the Express application.
@@ -19,5 +21,14 @@ app.use(express.json());
 app.get('/health', (_req, res) => {
   res.status(200).json({ status: 'ok' });
 });
+
+// Must come after every route: turns any unmatched path into a
+// consistent NotFoundError instead of Express's default HTML 404 page.
+app.use(notFoundMiddleware);
+
+// Must be registered last: Express identifies error-handling middleware
+// by its four-parameter signature, and only calls it for errors passed to
+// next(err) — including the ones notFoundMiddleware above produces.
+app.use(errorMiddleware);
 
 export default app;
