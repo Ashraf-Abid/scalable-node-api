@@ -1,6 +1,7 @@
 import express, { type Express } from 'express';
 import { errorMiddleware } from './middlewares/error.middleware';
 import { notFoundMiddleware } from './middlewares/not-found.middleware';
+import { sendSuccess } from './utils/api-response';
 
 /**
  * Builds and configures the Express application.
@@ -19,7 +20,7 @@ app.use(express.json());
 // requests. Deliberately has no dependencies (no DB, no auth) so it stays
 // reliable for load balancers / container orchestrators to poll.
 app.get('/health', (_req, res) => {
-  res.status(200).json({ status: 'ok' });
+  sendSuccess(res, { status: 'ok' });
 });
 
 // Must come after every route: turns any unmatched path into a

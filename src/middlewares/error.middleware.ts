@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import { z, ZodError } from 'zod';
 import { AppError } from '../errors/app-error';
+import { sendError } from '../utils/api-response';
 
 /**
  * The single place that turns a thrown/rejected error into an HTTP
@@ -9,9 +10,9 @@ import { AppError } from '../errors/app-error';
  * rejected promise from an async route handler here, so controllers won't
  * need a manual try/catch + next(err) around every handler.
  *
- * The response envelope ({ success: false, error: { code, message } })
- * matches Step 20's standardized shape, so this won't need reshaping once
- * the success-response side is added.
+ * Every branch below goes through sendError (Step 20) instead of building
+ * the { success: false, error: {...} } object literal itself, so the
+ * error envelope can never drift out of sync with the success envelope.
  */
 export function errorMiddleware(
   err: unknown,
@@ -22,22 +23,12 @@ export function errorMiddleware(
   _next: NextFunction,
 ): void {
   if (err instanceof AppError) {
-    res.status(err.statusCode).json({
-      success: false,
-      error: { code: err.code, message: err.message },
-    });
+    sendError(res, err.statusCode, err.code, err.message);
     return;
   }
 
   if (err instanceof ZodError) {
-    res.status(400).json({
-      success: false,
-      error: {
-        code: 'VALIDATION_ERROR',
-        message: 'Validation failed',
-        details: z.flattenError(err).fieldErrors,
-      },
-    });
+    sendError(res, 400, 'VALIDATION_ERROR', 'Validation failed', z.flattenError(err).fieldErrors);
     return;
   }
 
@@ -45,8 +36,5 @@ export function errorMiddleware(
   // real error server-side but never leak internals (message, stack) to
   // the client.
   console.error('Unexpected error:', err);
-  res.status(500).json({
-    success: false,
-    error: { code: 'INTERNAL_SERVER_ERROR', message: 'Something went wrong' },
-  });
+  sendError(res, 500, 'INTERNAL_SERVER_ERROR', 'Something went wrong');
 }
