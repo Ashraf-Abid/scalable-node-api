@@ -1,4 +1,5 @@
 import type { Prisma, User } from '@prisma/client';
+import { ConflictError, NotFoundError } from '../errors/app-error';
 import { userRepository } from '../repositories/user.repository';
 
 /**
@@ -7,17 +8,12 @@ import { userRepository } from '../repositories/user.repository';
  * "Reject a duplicate email" and "user must exist to update/delete it"
  * are both business rules, so they belong in this layer, not the
  * repository or a future controller.
- *
- * Errors thrown here are plain `Error`s for now because typed errors
- * (NotFoundError, ConflictError) don't exist yet — that's Step 18. Once
- * they do, only the `throw` lines change; the rules themselves already
- * live in the right place.
  */
 
 async function createUser(input: Prisma.UserCreateInput): Promise<User> {
   const existing = await userRepository.findByEmail(input.email);
   if (existing) {
-    throw new Error(`A user with email "${input.email}" already exists.`);
+    throw new ConflictError(`A user with email "${input.email}" already exists.`, 'USER_EMAIL_TAKEN');
   }
   return userRepository.create(input);
 }
@@ -25,7 +21,7 @@ async function createUser(input: Prisma.UserCreateInput): Promise<User> {
 async function getUserById(id: string): Promise<User> {
   const user = await userRepository.findById(id);
   if (!user) {
-    throw new Error(`User with id "${id}" was not found.`);
+    throw new NotFoundError(`User with id "${id}" was not found.`, 'USER_NOT_FOUND');
   }
   return user;
 }
@@ -40,7 +36,7 @@ async function updateUser(id: string, input: Prisma.UserUpdateInput): Promise<Us
   if (typeof input.email === 'string') {
     const existing = await userRepository.findByEmail(input.email);
     if (existing && existing.id !== id) {
-      throw new Error(`A user with email "${input.email}" already exists.`);
+      throw new ConflictError(`A user with email "${input.email}" already exists.`, 'USER_EMAIL_TAKEN');
     }
   }
 
