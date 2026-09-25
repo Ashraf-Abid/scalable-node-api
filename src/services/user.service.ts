@@ -1,6 +1,8 @@
 import type { Prisma, User } from '@prisma/client';
 import { ConflictError, NotFoundError } from '../errors/app-error';
 import { userRepository } from '../repositories/user.repository';
+import type { ListUsersQuery } from '../schemas/user.schema';
+import type { PaginatedResult } from '../types/pagination';
 
 /**
  * Business rules live here — the repository only knows how to talk to
@@ -26,8 +28,17 @@ async function getUserById(id: string): Promise<User> {
   return user;
 }
 
-async function listUsers(): Promise<User[]> {
-  return userRepository.findMany();
+async function listUsers(query: ListUsersQuery): Promise<PaginatedResult<User>> {
+  const { page, limit } = query;
+  const skip = (page - 1) * limit;
+  const { users, total } = await userRepository.findManyPaginated({ skip, take: limit });
+  return {
+    items: users,
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit),
+  };
 }
 
 async function updateUser(id: string, input: Prisma.UserUpdateInput): Promise<User> {

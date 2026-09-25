@@ -38,3 +38,15 @@ export const userIdParamSchema = z.object({
 });
 
 export type UserIdParam = z.infer<typeof userIdParamSchema>;
+
+// Validates ?page=&limit= on the list endpoint. z.coerce.number() is
+// required because query string values always arrive as strings
+// ("page=2" -> req.query.page === "2"), never as actual numbers. limit is
+// capped at 100 so a client can't force a single query to fetch an
+// unbounded number of rows.
+export const listUsersQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(20),
+});
+
+export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;

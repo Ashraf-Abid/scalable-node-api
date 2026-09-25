@@ -10,6 +10,7 @@ import type { Response } from 'express';
 export interface SuccessResponseBody<T> {
   success: true;
   data: T;
+  meta?: Record<string, unknown>;
 }
 
 export interface ErrorResponseBody {
@@ -21,8 +22,13 @@ export interface ErrorResponseBody {
   };
 }
 
-export function sendSuccess<T>(res: Response, data: T, statusCode = 200): Response {
-  const body: SuccessResponseBody<T> = { success: true, data };
+export function sendSuccess<T>(
+  res: Response,
+  data: T,
+  statusCode = 200,
+  meta?: Record<string, unknown>,
+): Response {
+  const body: SuccessResponseBody<T> = meta === undefined ? { success: true, data } : { success: true, data, meta };
   return res.status(statusCode).json(body);
 }
 

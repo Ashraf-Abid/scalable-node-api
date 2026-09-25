@@ -1,6 +1,6 @@
 import type { User } from '@prisma/client';
 import type { Request, Response } from 'express';
-import { createUserSchema, updateUserSchema, userIdParamSchema } from '../schemas/user.schema';
+import { createUserSchema, listUsersQuerySchema, updateUserSchema, userIdParamSchema } from '../schemas/user.schema';
 import { userService } from '../services/user.service';
 import { sendSuccess } from '../utils/api-response';
 
@@ -10,8 +10,6 @@ import { sendSuccess } from '../utils/api-response';
  * errors (AppError subclasses, from the service) both just propagate as
  * rejected promises; Express 5 forwards those straight to the global
  * error middleware (Step 19), so no handler here needs its own try/catch.
- *
- * Not wired to any route yet — that's Step 22.
  */
 
 // Never send the password hash back to a client, in any response shape.
@@ -32,9 +30,15 @@ async function getUser(req: Request, res: Response): Promise<void> {
   sendSuccess(res, toPublicUser(user));
 }
 
-async function listUsers(_req: Request, res: Response): Promise<void> {
-  const users = await userService.listUsers();
-  sendSuccess(res, users.map(toPublicUser));
+async function listUsers(req: Request, res: Response): Promise<void> {
+  const query = listUsersQuerySchema.parse(req.query);
+  const result = await userService.listUsers(query);
+  sendSuccess(res, result.items.map(toPublicUser), 200, {
+    page: result.page,
+    limit: result.limit,
+    total: result.total,
+    totalPages: result.totalPages,
+  });
 }
 
 async function updateUser(req: Request, res: Response): Promise<void> {
