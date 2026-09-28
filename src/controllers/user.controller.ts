@@ -38,6 +38,8 @@ async function listUsers(req: Request, res: Response): Promise<void> {
     limit: result.limit,
     total: result.total,
     totalPages: result.totalPages,
+    sortBy: query.sortBy,
+    sortOrder: query.sortOrder,
   });
 }
 

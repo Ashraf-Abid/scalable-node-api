@@ -29,9 +29,13 @@ async function getUserById(id: string): Promise<User> {
 }
 
 async function listUsers(query: ListUsersQuery): Promise<PaginatedResult<User>> {
-  const { page, limit } = query;
+  const { page, limit, sortBy, sortOrder } = query;
   const skip = (page - 1) * limit;
-  const { users, total } = await userRepository.findManyPaginated({ skip, take: limit });
+  const { users, total } = await userRepository.findManyPaginated({
+    skip,
+    take: limit,
+    orderBy: { [sortBy]: sortOrder },
+  });
   return {
     items: users,
     page,

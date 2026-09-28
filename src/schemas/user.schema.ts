@@ -39,14 +39,25 @@ export const userIdParamSchema = z.object({
 
 export type UserIdParam = z.infer<typeof userIdParamSchema>;
 
-// Validates ?page=&limit= on the list endpoint. z.coerce.number() is
-// required because query string values always arrive as strings
-// ("page=2" -> req.query.page === "2"), never as actual numbers. limit is
-// capped at 100 so a client can't force a single query to fetch an
-// unbounded number of rows.
+// Fields the list endpoint is allowed to sort by. An allowlist rather
+// than any string: passing an arbitrary field straight into Prisma's
+// orderBy would either throw an ugly PrismaClientValidationError instead
+// of a clean 400, or let a client sort by `password` — pointless since
+// it's never in the response anyway, but there's no reason to accept it.
+const userSortableFields = ['name', 'email', 'createdAt', 'updatedAt'] as const;
+
+// Validates ?page=&limit=&sortBy=&sortOrder= on the list endpoint.
+// z.coerce.number() is required because query string values always arrive
+// as strings ("page=2" -> req.query.page === "2"), never as actual
+// numbers. limit is capped at 100 so a client can't force a single query
+// to fetch an unbounded number of rows. Defaults (createdAt, asc) match
+// Step 28's original fixed order, so omitting these params keeps the
+// exact same behavior as before this step.
 export const listUsersQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
+  sortBy: z.enum(userSortableFields).default('createdAt'),
+  sortOrder: z.enum(['asc', 'desc']).default('asc'),
 });
 
 export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;
