@@ -58,6 +58,10 @@ export const listUsersQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(20),
   sortBy: z.enum(userSortableFields).default('createdAt'),
   sortOrder: z.enum(['asc', 'desc']).default('asc'),
+  // Optional free-text search against name/email (case-insensitive
+  // substring match — see the service layer). min(1) rejects "?search="
+  // rather than silently treating an empty string as "no search".
+  search: z.string().trim().min(1, 'Search term cannot be empty').max(255).optional(),
 });
 
 export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;

@@ -26,16 +26,19 @@ export const userRepository = {
     skip: number;
     take: number;
     orderBy: Prisma.UserOrderByWithRelationInput;
+    where?: Prisma.UserWhereInput;
   }): Promise<{ users: User[]; total: number }> {
     // A transaction pairs the page of rows with the total count as one
     // consistent read — without it, a row inserted/deleted between the two
     // separate queries could make `total` disagree with what was actually
     // paged through. orderBy is required, not optional: without an
     // explicit order, Postgres doesn't guarantee row order at all, so
-    // "page 2" could repeat or skip rows relative to "page 1".
+    // "page 2" could repeat or skip rows relative to "page 1". The same
+    // `where` is applied to both queries, so `total` always reflects the
+    // filtered result set, not every row in the table.
     const [users, total] = await prisma.$transaction([
-      prisma.user.findMany({ skip: params.skip, take: params.take, orderBy: params.orderBy }),
-      prisma.user.count(),
+      prisma.user.findMany({ skip: params.skip, take: params.take, orderBy: params.orderBy, where: params.where }),
+      prisma.user.count({ where: params.where }),
     ]);
     return { users, total };
   },

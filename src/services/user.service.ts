@@ -4,6 +4,20 @@ import { userRepository } from '../repositories/user.repository';
 import type { ListUsersQuery } from '../schemas/user.schema';
 import type { PaginatedResult } from '../types/pagination';
 
+// Search matches name OR email, case-insensitively, as a substring — not
+// an exact match, so "ash" finds "Ashraful".
+function buildSearchFilter(search: string | undefined): Prisma.UserWhereInput | undefined {
+  if (!search) {
+    return undefined;
+  }
+  return {
+    OR: [
+      { name: { contains: search, mode: 'insensitive' } },
+      { email: { contains: search, mode: 'insensitive' } },
+    ],
+  };
+}
+
 /**
  * Business rules live here — the repository only knows how to talk to
  * Postgres, it has no opinion on whether an operation *should* happen.
@@ -29,12 +43,13 @@ async function getUserById(id: string): Promise<User> {
 }
 
 async function listUsers(query: ListUsersQuery): Promise<PaginatedResult<User>> {
-  const { page, limit, sortBy, sortOrder } = query;
+  const { page, limit, sortBy, sortOrder, search } = query;
   const skip = (page - 1) * limit;
   const { users, total } = await userRepository.findManyPaginated({
     skip,
     take: limit,
     orderBy: { [sortBy]: sortOrder },
+    where: buildSearchFilter(search),
   });
   return {
     items: users,
