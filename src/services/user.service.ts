@@ -3,6 +3,7 @@ import { ConflictError, NotFoundError } from '../errors/app-error';
 import { userRepository } from '../repositories/user.repository';
 import type { ListUsersQuery } from '../schemas/user.schema';
 import type { PaginatedResult } from '../types/pagination';
+import { hashPassword } from '../utils/password';
 
 // Search matches name OR email, case-insensitively, as a substring — not
 // an exact match, so "ash" finds "Ashraful".
@@ -31,7 +32,11 @@ async function createUser(input: Prisma.UserCreateInput): Promise<User> {
   if (existing) {
     throw new ConflictError(`A user with email "${input.email}" already exists.`, 'USER_EMAIL_TAKEN');
   }
-  return userRepository.create(input);
+  // Check for a duplicate email before hashing — bcrypt is deliberately
+  // slow (that's what makes it resistant to brute force), so there's no
+  // reason to pay that cost on a request that's going to fail anyway.
+  const hashedPassword = await hashPassword(input.password);
+  return userRepository.create({ ...input, password: hashedPassword });
 }
 
 async function getUserById(id: string): Promise<User> {
@@ -70,7 +75,12 @@ async function updateUser(id: string, input: Prisma.UserUpdateInput): Promise<Us
     }
   }
 
-  return userRepository.update(id, input);
+  // A password change must be hashed exactly like a new password — this
+  // path stored plaintext until this step added it.
+  const data =
+    typeof input.password === 'string' ? { ...input, password: await hashPassword(input.password) } : input;
+
+  return userRepository.update(id, data);
 }
 
 async function deleteUser(id: string): Promise<User> {
