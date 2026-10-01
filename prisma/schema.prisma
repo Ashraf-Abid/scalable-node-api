@@ -24,5 +24,15 @@ model User {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
+  // Speeds up ORDER BY createdAt — the default sort for every list query
+  // (Step 29), hit on every call to GET /users that doesn't specify
+  // sortBy. Without it, Postgres sorts the full result set on every call.
+  @@index([createdAt])
+  // Speeds up ORDER BY name — the alternate sort option (?sortBy=name).
+  // Does NOT help the `contains` search from Step 30: a B-tree index only
+  // accelerates equality/range/prefix lookups, not an arbitrary substring
+  // match. Fast substring search needs a trigram (pg_trgm) GIN index,
+  // deliberately deferred — not justified at this data scale yet.
+  @@index([name])
   @@map("users")
 }
