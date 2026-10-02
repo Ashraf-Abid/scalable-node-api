@@ -1,8 +1,8 @@
-import type { User } from '@prisma/client';
 import type { Request, Response } from 'express';
 import { createUserSchema, listUsersQuerySchema, updateUserSchema, userIdParamSchema } from '../schemas/user.schema';
 import { userService } from '../services/user.service';
 import { sendSuccess } from '../utils/api-response';
+import { toPublicUser } from '../utils/public-user';
 
 /**
  * Parses the request, calls the service, shapes the response — nothing
@@ -11,12 +11,6 @@ import { sendSuccess } from '../utils/api-response';
  * rejected promises; Express 5 forwards those straight to the global
  * error middleware (Step 19), so no handler here needs its own try/catch.
  */
-
-// Never send the password hash back to a client, in any response shape.
-function toPublicUser(user: User) {
-  const { password, ...publicUser } = user;
-  return publicUser;
-}
 
 async function createUser(req: Request, res: Response): Promise<void> {
   const input = createUserSchema.parse(req.body);

@@ -1,6 +1,7 @@
 import express, { type Express } from 'express';
 import { errorMiddleware } from './middlewares/error.middleware';
 import { notFoundMiddleware } from './middlewares/not-found.middleware';
+import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 import { sendSuccess } from './utils/api-response';
 
@@ -24,6 +25,7 @@ app.get('/health', (_req, res) => {
   sendSuccess(res, { status: 'ok' });
 });
 
+app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 
 // Must come after every route: turns any unmatched path into a
