@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { loginSchema } from '../schemas/auth.schema';
 import { createUserSchema } from '../schemas/user.schema';
 import { authService } from '../services/auth.service';
 import { sendSuccess } from '../utils/api-response';
@@ -15,6 +16,13 @@ async function register(req: Request, res: Response): Promise<void> {
   sendSuccess(res, toPublicUser(user), 201);
 }
 
+async function login(req: Request, res: Response): Promise<void> {
+  const input = loginSchema.parse(req.body);
+  const { user, token } = await authService.login(input);
+  sendSuccess(res, { user: toPublicUser(user), token });
+}
+
 export const authController = {
   register,
+  login,
 };

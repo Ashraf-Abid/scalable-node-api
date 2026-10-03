@@ -20,6 +20,11 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
   DATABASE_URL: z.url(),
+  // min(32) rejects a trivially weak/short secret at startup — a JWT
+  // signed with a short secret is brute-forceable offline, with no way
+  // to detect the compromise from the API side.
+  JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
+  JWT_EXPIRES_IN: z.string().default('1d'),
 });
 
 const parsed = envSchema.safeParse(process.env);

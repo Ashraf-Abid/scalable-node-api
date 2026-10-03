@@ -28,6 +28,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.19.43",
     "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
@@ -41,6 +42,7 @@
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
     "zod": "^4.6.5"
   }
 }

@@ -47,6 +47,14 @@ async function getUserById(id: string): Promise<User> {
   return user;
 }
 
+// Unlike getUserById, this deliberately returns null instead of throwing
+// — authService.login (Step 34) needs to tell "no such user" apart from
+// "wrong password" internally, even though both produce the same error
+// to the client.
+async function findByEmail(email: string): Promise<User | null> {
+  return userRepository.findByEmail(email);
+}
+
 async function listUsers(query: ListUsersQuery): Promise<PaginatedResult<User>> {
   const { page, limit, sortBy, sortOrder, search } = query;
   const skip = (page - 1) * limit;
@@ -91,6 +99,7 @@ async function deleteUser(id: string): Promise<User> {
 export const userService = {
   createUser,
   getUserById,
+  findByEmail,
   listUsers,
   updateUser,
   deleteUser,
