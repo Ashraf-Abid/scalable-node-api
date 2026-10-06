@@ -7,3 +7,5 @@ export function toPublicUser(user: User) {
   const { password, ...publicUser } = user;
   return publicUser;
 }
+
+export type PublicUser = ReturnType<typeof toPublicUser>;
