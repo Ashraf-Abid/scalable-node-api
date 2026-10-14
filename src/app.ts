@@ -1,4 +1,5 @@
 import express, { type Express } from 'express';
+import helmet from 'helmet';
 import { authenticate } from './middlewares/authenticate.middleware';
 import { requireRole } from './middlewares/authorize.middleware';
 import { errorMiddleware } from './middlewares/error.middleware';
@@ -16,6 +17,16 @@ import { sendSuccess } from './utils/api-response';
  * (via supertest) without a real server listening on a real socket.
  */
 const app: Express = express();
+
+// Sets a standard set of defensive HTTP response headers (X-Content-
+// Type-Options, X-Frame-Options, a restrictive Content-Security-Policy,
+// etc.) on every response. Mounted first, before anything else — it's
+// pure header-setting with no dependency on parsed input, and should
+// apply even to responses from middleware that runs later (including
+// error responses). Most of this matters more once something here
+// serves actual HTML (Swagger UI, Step 51) than for raw JSON, but it's
+// free defense-in-depth either way and standard practice regardless.
+app.use(helmet());
 
 // Parse JSON request bodies so route handlers can read `req.body`.
 app.use(express.json());
