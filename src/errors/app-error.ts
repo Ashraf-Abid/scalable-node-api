@@ -37,6 +37,20 @@ export class UnauthorizedError extends AppError {
   }
 }
 
+// Distinct from UnauthorizedError (401): 401 means "I don't know who you
+// are, or your credentials are invalid" — the fix is to authenticate.
+// 403 means "I know exactly who you are, but you're not allowed to do
+// this" — re-authenticating won't help, a client should stop retrying.
+export class ForbiddenError extends AppError {
+  readonly statusCode = 403;
+  readonly code: string;
+
+  constructor(message = 'Forbidden', code = 'FORBIDDEN') {
+    super(message);
+    this.code = code;
+  }
+}
+
 export class ConflictError extends AppError {
   readonly statusCode = 409;
   readonly code: string;

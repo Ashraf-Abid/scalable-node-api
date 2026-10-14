@@ -1,5 +1,6 @@
 import express, { type Express } from 'express';
 import { authenticate } from './middlewares/authenticate.middleware';
+import { requireRole } from './middlewares/authorize.middleware';
 import { errorMiddleware } from './middlewares/error.middleware';
 import { notFoundMiddleware } from './middlewares/not-found.middleware';
 import authRoutes from './routes/auth.routes';
@@ -27,11 +28,11 @@ app.get('/health', (_req, res) => {
 });
 
 app.use('/api/v1/auth', authRoutes);
-// Every /api/v1/users route requires a valid Bearer token. Auth routes
-// above stay public — you can't be authenticated before you have an
-// account or have logged in. Role-based restrictions within this
-// (e.g. only admins can list every user) are Step 37, not this one.
-app.use('/api/v1/users', authenticate, userRoutes);
+// /api/v1/users is an admin-only management interface — listing,
+// creating, or editing arbitrary accounts is not something a regular
+// USER should be able to do. Self-service (register/login) stays under
+// /api/v1/auth, unaffected by this restriction.
+app.use('/api/v1/users', authenticate, requireRole('ADMIN'), userRoutes);
 
 // Must come after every route: turns any unmatched path into a
 // consistent NotFoundError instead of Express's default HTML 404 page.

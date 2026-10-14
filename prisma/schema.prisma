@@ -12,6 +12,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
   // DB-generated UUID (native Postgres type) instead of an incrementing
   // integer — avoids leaking record counts via sequential, guessable IDs.
@@ -21,6 +26,11 @@ model User {
   email     String   @unique @db.VarChar(255)
   // Bcrypt hash — never the plaintext password.
   password  String   @db.VarChar(255)
+  // Defaults to USER — nothing in the public API can promote an account
+  // to ADMIN (registration always creates USER); that's a deliberate gap,
+  // not an oversight. The first admin has to be granted directly in the
+  // database.
+  role      UserRole @default(USER)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
