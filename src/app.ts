@@ -1,5 +1,7 @@
+import cors from 'cors';
 import express, { type Express } from 'express';
 import helmet from 'helmet';
+import { env } from './config/env';
 import { authenticate } from './middlewares/authenticate.middleware';
 import { requireRole } from './middlewares/authorize.middleware';
 import { errorMiddleware } from './middlewares/error.middleware';
@@ -27,6 +29,15 @@ const app: Express = express();
 // serves actual HTML (Swagger UI, Step 51) than for raw JSON, but it's
 // free defense-in-depth either way and standard practice regardless.
 app.use(helmet());
+
+// Only browsers enforce CORS — it's not an access-control mechanism
+// against non-browser clients (curl, server-to-server calls), those
+// never see the Origin header check at all. This exists purely to stop
+// an arbitrary website's JavaScript from reading this API's responses on
+// a logged-in user's behalf. No `credentials: true` — this API uses
+// Bearer tokens in the Authorization header, not cookies, so enabling
+// credentialed CORS would add attack surface for no benefit here.
+app.use(cors({ origin: env.CORS_ORIGIN }));
 
 // Parse JSON request bodies so route handlers can read `req.body`.
 app.use(express.json());

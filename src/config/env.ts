@@ -25,6 +25,15 @@ const envSchema = z.object({
   // to detect the compromise from the API side.
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   JWT_EXPIRES_IN: z.string().default('1d'),
+  // Comma-separated list of origins allowed to call this API from a
+  // browser. No default: an unset CORS_ORIGIN should break cross-origin
+  // frontend access loudly (a visible, easy-to-notice failure), not
+  // silently fall back to something permissive like "*" that would only
+  // get noticed as a security gap, not a functional one.
+  CORS_ORIGIN: z
+    .string()
+    .min(1, 'CORS_ORIGIN is required')
+    .transform((value) => value.split(',').map((origin) => origin.trim())),
 });
 
 const parsed = envSchema.safeParse(process.env);
