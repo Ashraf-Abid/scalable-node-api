@@ -6,6 +6,7 @@ import { authenticate } from './middlewares/authenticate.middleware';
 import { requireRole } from './middlewares/authorize.middleware';
 import { errorMiddleware } from './middlewares/error.middleware';
 import { notFoundMiddleware } from './middlewares/not-found.middleware';
+import { authLimiter, generalLimiter } from './middlewares/rate-limit.middleware';
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 import { sendSuccess } from './utils/api-response';
@@ -49,7 +50,14 @@ app.get('/health', (_req, res) => {
   sendSuccess(res, { status: 'ok' });
 });
 
-app.use('/api/v1/auth', authRoutes);
+// Applies to everything mounted below — deliberately placed after
+// /health so orchestrator/load-balancer probes can never trip it.
+app.use(generalLimiter);
+
+// authLimiter is much stricter than generalLimiter above and applies in
+// addition to it, not instead of it — register/login are rate-limited by
+// both at once.
+app.use('/api/v1/auth', authLimiter, authRoutes);
 // /api/v1/users is an admin-only management interface — listing,
 // creating, or editing arbitrary accounts is not something a regular
 // USER should be able to do. Self-service (register/login) stays under

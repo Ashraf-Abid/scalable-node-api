@@ -70,3 +70,19 @@ export class NotFoundError extends AppError {
     this.code = code;
   }
 }
+
+// Unlike the others, this is never `throw`n — the rate limiter
+// (Step 40) intercepts and responds to the request itself, it doesn't
+// pass control to the global error middleware. It's still defined here
+// so every HTTP error shape this API can produce has one canonical
+// status/code/message definition, instead of the 429 response being
+// hardcoded separately in the rate-limiter config.
+export class TooManyRequestsError extends AppError {
+  readonly statusCode = 429;
+  readonly code: string;
+
+  constructor(message = 'Too many requests', code = 'TOO_MANY_REQUESTS') {
+    super(message);
+    this.code = code;
+  }
+}
