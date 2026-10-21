@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import type { NextFunction, Request, Response } from 'express';
 import { z, ZodError } from 'zod';
 import { AppError } from '../errors/app-error';
@@ -29,6 +30,21 @@ export function errorMiddleware(
 
   if (err instanceof ZodError) {
     sendError(res, 400, 'VALIDATION_ERROR', 'Validation failed', z.flattenError(err).fieldErrors);
+    return;
+  }
+
+  // P2002 (unique constraint violation) is Prisma's own error, not one of
+  // ours — but it's still an expected, user-correctable outcome, not a
+  // bug. It surfaces when two concurrent requests both pass an
+  // application-level uniqueness check (e.g. createUser's findByEmail)
+  // before either write commits, so the second one fails at the database
+  // instead. Without this, that race condition would fall through to the
+  // generic 500 branch below and be logged as if it were an unhandled
+  // crash (Step 41 security/hardening review — found by actually
+  // reproducing the race with concurrent requests, not by inspection).
+  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+    const target = Array.isArray(err.meta?.target) ? err.meta.target.join(', ') : 'field';
+    sendError(res, 409, 'CONFLICT', `A record with this ${target} already exists.`);
     return;
   }
 

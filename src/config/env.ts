@@ -23,7 +23,20 @@ const envSchema = z.object({
   // min(32) rejects a trivially weak/short secret at startup — a JWT
   // signed with a short secret is brute-forceable offline, with no way
   // to detect the compromise from the API side.
-  JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
+  //
+  // The second check (Step 41 security review) closes a real gap: the
+  // instructional placeholder committed in .env.example is 66 characters
+  // — long enough to pass min(32). Anyone who copies that file to .env
+  // without replacing it would start the app with a secret that's public
+  // on GitHub, letting anyone forge a valid token for any user. Rejecting
+  // the literal placeholder value forces it to actually be changed.
+  JWT_SECRET: z
+    .string()
+    .min(32, 'JWT_SECRET must be at least 32 characters')
+    .refine(
+      (value) => value !== 'replace-with-a-generated-random-secret-at-least-32-characters-long',
+      'JWT_SECRET is still the placeholder value from .env.example — generate a real secret',
+    ),
   JWT_EXPIRES_IN: z.string().default('1d'),
   // Comma-separated list of origins allowed to call this API from a
   // browser. No default: an unset CORS_ORIGIN should break cross-origin
